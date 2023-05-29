@@ -20,6 +20,7 @@ class AddFormField extends StatelessWidget {
       children: [
         TextFormField(
           controller: usernameController,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Vui lòng nhập Tên đăng nhập';
@@ -50,7 +51,7 @@ class AddFormField extends StatelessWidget {
               if (value.trim().length < 8 || value.trim().length > 32) {
                 return 'Mật khẩu phải có tối thiểu 8 kí tự và tối đa 32 kí tự';
               }
-              final regex = RegExp(r'(?=.*[0-9])(?=.*[A-Z])');
+              final regex = RegExp(r'(?=.*\d)(?=.*[A-Z])');
               if (!regex.hasMatch(value)) {
                 return 'Mật khẩu phải có ít nhất một chữ số và một kí tự viết hoa';
               }

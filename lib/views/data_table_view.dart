@@ -1,4 +1,5 @@
 import 'package:demo/models/account_entity.dart';
+import 'package:demo/views/input_dialog.dart';
 import 'package:flutter/material.dart';
 
 class DataTableView extends StatefulWidget {
@@ -15,29 +16,33 @@ class DataTableView extends StatefulWidget {
 
 class _DataTableViewState extends State<DataTableView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: DataTable(
-            border: TableBorder.all(color: Colors.black),
-            columns: const <DataColumn>[
-              DataColumn(
-                label: Center(child: Text('STK')),
-              ),
-              DataColumn(
-                label: Center(child: Text('Tên đăng nhập')),
-              ),
-              DataColumn(
-                label: Center(child: Text('Mật khẩu')),
-              ),
-            ],
-            rows: buildRowList(),
-          ),
+        child: DataTable(
+          border: TableBorder.all(color: Colors.black),
+          columns: const <DataColumn>[
+            DataColumn(
+              label: Center(child: Text('STK')),
+            ),
+            DataColumn(
+              label: Center(child: Text('Tên đăng nhập')),
+            ),
+            DataColumn(
+              label: Center(child: Text('Mật khẩu')),
+            ),
+          ],
+          rows: buildRowList(),
         ),
       ),
     );
@@ -49,80 +54,82 @@ class _DataTableViewState extends State<DataTableView> {
       (index) => DataRow(
         cells: <DataCell>[
           DataCell(
-            widget.accountList[index].canEdit
-                ? Form(
-                    key: _formKey,
-                    child: TextFormField(
-                      // readOnly: widget.accountList[index].serial.isNotEmpty,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Vui lòng nhập mã thẻ';
-                        }
-                        if (value.trim().length < 16) {
-                          return 'Mã thẻ phải dài 16 kí tự';
-                        }
-                        return null;
+            Text(widget.accountList[index].serial),
+            showEditIcon: (widget.accountList[index].serial).isEmpty,
+            onTap: (widget.accountList[index].serial).isEmpty
+                ? () {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) {
+                        return InputDialog(
+                          controller: controller,
+                          formKey: _formKey,
+                          onSave: (value) async {
+                            setState(() {
+                              widget.accountList[index].serial = value;
+                            });
+                            await showAutoDismissDialog();
+                          },
+                        );
                       },
-                      keyboardType: TextInputType.number,
-                      maxLines: 1,
-                      maxLength: 16,
-                      decoration: const InputDecoration(
-                        counter: SizedBox(),
-                        border: InputBorder.none,
-                      ),
-                      onChanged: (value) {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() {
-                            widget.accountList[index].serial = value.trim();
-                            widget.accountList[index].canEdit = false;
-                          });
-                        } else {
-                          setState(() {
-                            widget.accountList[index].canEdit = true;
-                          });
-                        }
-                      },
-                      controller: TextEditingController(
-                        text: widget.accountList[index].serial,
-                      ),
-                    ),
-                  )
-                : const SizedBox(),
-            showEditIcon: widget.accountList[index].canEdit,
-            onTap: () {
-              setState(() {
-                widget.accountList[index].canEdit = false;
-              });
-            },
+                    );
+                  }
+                : null,
           ),
           DataCell(
             Text(widget.accountList[index].username),
           ),
           DataCell(
-            StatefulBuilder(
-              builder: (context, setState) {
-                return TextFormField(
-                  readOnly: true,
-                  obscureText: widget.accountList[index].showPassword,
-                  onTap: () {
-                    setState(() {
-                      widget.accountList[index].showPassword =
-                          !widget.accountList[index].showPassword;
-                    });
-                  },
-                  enableInteractiveSelection: false,
-                  controller: TextEditingController(
-                    text: widget.accountList[index].password,
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                  ),
-                );
+            TextFormField(
+              readOnly: true,
+              obscureText: widget.accountList[index].showPassword,
+              onTap: () {
+                setState(() {
+                  widget.accountList[index].showPassword =
+                      !widget.accountList[index].showPassword;
+                });
               },
+              enableInteractiveSelection: false,
+              controller: TextEditingController(
+                text: widget.accountList[index].password,
+              ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> showAutoDismissDialog() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Tuyệt vời!',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+    Future.delayed(
+      const Duration(seconds: 1),
+          () {
+        Navigator.of(context).pop();
+      },
     );
   }
 }

@@ -128,29 +128,47 @@ class _AddViewState extends State<AddView> {
         _provider.setCurrentStep(index: currentStep + 1);
       }
     }
-    if (currentStep == 1 && allowSave) {
-      _provider.addToAccountList(
-        account: AccountEntity(
-          username: usernameController.text,
-          password: passwordController.text,
-        ),
-      );
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Thành công'),
-          content: const Text('Thêm tài khoản thành công.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cảm ơn!'),
-              onPressed: () {
-                _provider.resetAddView();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-      );
+    if (currentStep == 1) {
+      if (allowSave) {
+        _provider.addToAccountList(
+          account: AccountEntity(
+            username: usernameController.text,
+            password: passwordController.text,
+          ),
+        );
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Thành công'),
+            content: const Text('Thêm tài khoản thành công.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cảm ơn!'),
+                onPressed: () {
+                  _provider.resetAddView();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Chưa được'),
+            content: const Text('Trả lời câu hỏi đã!'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Xin nỗi!'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 }

@@ -39,34 +39,77 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late MyAppProvider provider;
+  bool isMobileScreen = false;
 
   @override
   void initState() {
     super.initState();
     provider = context.read<MyAppProvider>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkScreenSize();
+    });
+  }
+
+  void checkScreenSize() {
+    MediaQueryData mediaQuery = MediaQuery.of(context);
+    bool isMobile = mediaQuery.size.width <= 600;
+    if (isMobile != isMobileScreen) {
+      setState(() {
+        isMobileScreen = isMobile;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<MyAppProvider>(
       builder: (context, value, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(widget.title),
-          ),
-          body: getBodyViewList(value.listAccount).elementAt(value.viewIndex),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: value.viewIndex,
-            onTap: (index) => provider.setViewIndex(index: index),
-            items: AppConfigs.bottomNavigationBarItems.entries
-                .map(
-                  (e) => BottomNavigationBarItem(
-                    icon: Icon(e.key),
-                    label: e.value,
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(widget.title),
+              ),
+              body: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: getBodyViewList(value.listAccount)
+                        .elementAt(value.viewIndex),
                   ),
-                )
-                .toList(),
-          ),
+                  if (!isMobileScreen)
+                    NavigationRail(
+                      destinations: AppConfigs.bottomNavigationBarItems.entries
+                          .map(
+                            (e) => NavigationRailDestination(
+                              icon: Icon(e.key),
+                              label: Text(e.value),
+                            ),
+                          )
+                          .toList(),
+                      selectedIndex: value.viewIndex,
+                      onDestinationSelected: (index) =>
+                          provider.setViewIndex(index: index),
+                    )
+                ],
+              ),
+              bottomNavigationBar: isMobileScreen
+                  ? BottomNavigationBar(
+                      currentIndex: value.viewIndex,
+                      onTap: (index) => provider.setViewIndex(index: index),
+                      items: AppConfigs.bottomNavigationBarItems.entries
+                          .map(
+                            (e) => BottomNavigationBarItem(
+                              icon: Icon(e.key),
+                              label: e.value,
+                            ),
+                          )
+                          .toList(),
+                    )
+                  : null,
+              drawer: buildDrawer(),
+            );
+          },
         );
       },
     );
@@ -79,5 +122,48 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       const AddView(),
     ];
+  }
+
+  Widget buildDrawer() {
+    return Drawer(
+      child: Column(
+        children: <Widget>[
+          const SizedBox(
+            width: double.infinity,
+            child: DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Drawer Header',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: AppConfigs.bottomNavigationBarItems.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  leading: Icon(
+                    AppConfigs.bottomNavigationBarItems.keys.elementAt(index),
+                  ),
+                  title: Text(
+                    AppConfigs.bottomNavigationBarItems.values.elementAt(index),
+                  ),
+                  onTap: () {
+                    provider.setViewIndex(index: index);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
