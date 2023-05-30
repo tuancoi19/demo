@@ -18,7 +18,7 @@ class AskQuestionView extends StatelessWidget {
   Widget build(BuildContext context) {
     return allowSave
         ? const Center(
-            child: Text('Cảm ơn'),
+            child: Text('Cảm ơn!'),
           )
         : Column(
             crossAxisAlignment: CrossAxisAlignment.center,

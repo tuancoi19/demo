@@ -60,7 +60,6 @@ class _DataTableViewState extends State<DataTableView> {
                 ? () {
                     showDialog(
                       context: context,
-                      barrierDismissible: false,
                       builder: (context) {
                         return InputDialog(
                           controller: controller,
